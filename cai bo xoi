@@ -1,0 +1,68 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <DHT.h>
+
+// Thiết lập LCD 16x2, địa chỉ I2C là 0x27
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+// Thiết lập chân và loại cảm biến DHT22
+#define DHTPIN 2 // chân kết nối cảm biến DHT22
+#define DHTTYPE DHT22
+DHT dht(DHTPIN, DHTTYPE);
+
+void setup() {
+  lcd.begin();
+  lcd.backlight(); // Bật đèn nền LCD
+  dht.begin();
+  Serial.begin(9600);
+}
+
+void loop() {
+  // Đọc dữ liệu từ cảm biến
+  float temperature = dht.readTemperature();
+  float humidity = dht.readHumidity();
+  int lightIntensity = analogRead(A0); // giả sử cảm biến ánh sáng ở chân A0
+
+  // Giả lập trạng thái bật/tắt tưới và đèn
+  String waterStatus = (humidity < 40) ? "On " : "Off";
+  String lightStatus = (lightIntensity < 1500) ? "On " : "Off";
+
+  // Hiển thị dữ liệu lên LCD
+  lcd.clear();
+  
+  // Dòng đầu tiên: Nhiệt độ và độ ẩm
+  lcd.setCursor(0, 0);
+  lcd.print("Temp: ");
+  lcd.print(temperature);
+  lcd.print("C");
+
+  lcd.setCursor(10, 0);
+  lcd.print("Humi: ");
+  lcd.print(humidity);
+  lcd.print("%");
+
+  // Dòng thứ hai: Cường độ ánh sáng, trạng thái tưới và đèn
+  lcd.setCursor(0, 1);
+  lcd.print("Light: ");
+  lcd.print(lightIntensity);
+
+  lcd.setCursor(10, 1);
+  lcd.print("W:");
+  lcd.print(waterStatus);
+  lcd.print(" L:");
+  lcd.print(lightStatus);
+
+  // In ra serial để tiện theo dõi
+  Serial.print("Temperature: ");
+  Serial.print(temperature);
+  Serial.print(" C, Humidity: ");
+  Serial.print(humidity);
+  Serial.print(" %, Light: ");
+  Serial.print(lightIntensity);
+  Serial.print(", Water: ");
+  Serial.print(waterStatus);
+  Serial.print(", Light: ");
+  Serial.println(lightStatus);
+
+  delay(2000); // Đợi 2 giây trước khi đo lần tiếp theo
+}
